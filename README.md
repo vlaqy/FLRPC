@@ -6,3 +6,6 @@ If you are encountering any issues, try downloading the latest version of Micros
 https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170
 
 If you are experiencing other problems or have identified a bug, please create a new issue in this repository so that it can be reviewed and addressed.
+
+
+Tested on WIN11 and WIN10.
