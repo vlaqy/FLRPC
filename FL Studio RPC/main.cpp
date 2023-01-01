@@ -65,7 +65,7 @@ void update_presence(const std::wstring& process_name)
             memset(&presence, 0, sizeof(presence));
             presence.details = details;
             presence.largeImageKey = "fl_logo";
-            presence.largeImageText = "FL Studio 20";
+            presence.largeImageText = "FL Studio";
             presence.instance = 1;
             presence.startTimestamp = start_time;
             Discord_UpdatePresence(&presence);
