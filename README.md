@@ -1,6 +1,6 @@
 # FLRPC
 An application that allows Rich Presence to be displayed on your Discord profile from FL Studio, this includes .flp names and time elapsed on FL Studio.
-It will also display time elapsed on a projects rendering time.
+It will also display time elapsed on a projects rendering time. (FL Studio 20 ONLY)
 
 
 If you are encountering any issues, try downloading the latest version of Microsoft Visual C++ Redistributable found below
