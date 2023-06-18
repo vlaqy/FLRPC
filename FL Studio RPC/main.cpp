@@ -1,4 +1,4 @@
-﻿#include <Windows.h>
+#include <Windows.h>
 #include <chrono> 
 #include "DiscordSDK/include/discord_rpc.h"
 #include "DiscordSDK/include/discord_register.h"
@@ -9,11 +9,12 @@
 #include <chrono>
 #include <tchar.h>
 #include <regex>
-// Made by cdn#0001 & melee#0001 
 
 const char* APPLICATION_ID = "788422800238575659"; // DO NOT REPLACE THIS
 
-bool check_process() {
+bool flRunning = false;
+
+bool check_process(const std::wstring& process_name) {
     HANDLE hProcessSnap;
     PROCESSENTRY32 pe32;
     hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -25,19 +26,18 @@ bool check_process() {
         CloseHandle(hProcessSnap);
         return false;
     }
+
     do {
-        if (!wcscmp(pe32.szExeFile, L"FL64.exe")) {
+        if (!wcscmp(pe32.szExeFile, process_name.c_str())) {
             CloseHandle(hProcessSnap);
             return true;
         }
     } while (Process32Next(hProcessSnap, &pe32));
-    CloseHandle(hProcessSnap);
-    MessageBox(NULL, L"FL Studio was not found!", L"Error", MB_ICONERROR | MB_OK);
-    exit(0);
+
+    return false;
 }
 
-
-void update_presence(const std::wstring& process_name)
+void update_presence()
 {
     auto current_time = std::chrono::system_clock::now();
     auto start_time = std::chrono::system_clock::to_time_t(current_time);
@@ -72,64 +72,119 @@ void update_presence(const std::wstring& process_name)
         }
         else
         {
-            check_process();
+            check_process(L"FL64.exe");
+            check_process(L"FL32.exe");
             Discord_ClearPresence();
         }
 
-        Sleep(1000);
+        Sleep(500);
     }
+}
+
+void clear_presence()
+{
+    Discord_ClearPresence();
+}
+
+bool SetStartupRegistry(const std::wstring& appName, const std::wstring& exePath)
+{
+    HKEY hKey;
+    if (RegCreateKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, NULL) != ERROR_SUCCESS)
+    {
+        return false;
+    }
+
+    if (RegSetValueExW(hKey, appName.c_str(), 0, REG_SZ, (BYTE*)exePath.c_str(), (exePath.size() + 1) * sizeof(wchar_t)) != ERROR_SUCCESS)
+    {
+        RegCloseKey(hKey);
+        return false;
+    }
+
+    RegCloseKey(hKey);
+    return true;
+}
+
+bool CheckStartupRegistry(const std::wstring& appName, std::wstring& exePath)
+{
+    HKEY hKey;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", 0, KEY_READ, &hKey) != ERROR_SUCCESS)
+    {
+        return false;
+    }
+
+    wchar_t buffer[MAX_PATH];
+    DWORD bufferSize = sizeof(buffer);
+
+    if (RegQueryValueExW(hKey, appName.c_str(), NULL, NULL, (BYTE*)buffer, &bufferSize) != ERROR_SUCCESS)
+    {
+        RegCloseKey(hKey);
+        return false;
+    }
+
+    exePath = buffer;
+
+    RegCloseKey(hKey);
+    return true;
 }
 
 int main()
 {
+    FreeConsole();
     DiscordEventHandlers handlers;
     memset(&handlers, 0, sizeof(handlers));
 
     Discord_Initialize(APPLICATION_ID, &handlers, 1, NULL);
     Discord_ClearPresence();
 
-    const char* title = "FL Studio RPC";
+    const char* title = "FLRPC";
 
     int size = MultiByteToWideChar(CP_UTF8, 0, title, -1, NULL, 0);
-    LPCWSTR wTitle = new wchar_t[size];
+    LPWSTR wTitle = new wchar_t[size];
     MultiByteToWideChar(CP_UTF8, 0, title, -1, (LPWSTR)wTitle, size);
 
     SetConsoleTitle(wTitle);
+    delete[] wTitle;
 
-    std::wstring process_name = L"FL64.exe";
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    int console_width = csbi.srWindow.Right - csbi.srWindow.Left + 1;
-    int console_height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+    std::wstring FL64 = L"FL64.exe";
+    std::wstring FL32 = L"FL32.exe";
 
-    int text_width = 18;
-    int text_height = 1;
-    int x = (console_width - text_width) / 2;
-    int y = (console_height - text_height) / 2;
+    wchar_t exePath[MAX_PATH];
+    GetModuleFileNameW(NULL, exePath, MAX_PATH);
 
-    COORD cursor_pos;
-    cursor_pos.X = x;
-    cursor_pos.Y = y;
+    std::wstring appName = L"FLRPC";
 
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), cursor_pos);
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_BLUE);
-    Sleep(1000);
-    check_process();
-    std::cout << "FL Studio was found!" << std::endl;
-    Sleep(3000);
-    system("cls");
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), cursor_pos);
-    std::cout << "   Minimizing..  " << std::endl;
-    Sleep(3000);
-    FreeConsole();
-
-    update_presence(process_name);
+    std::wstring startupExePath;
+    if (!CheckStartupRegistry(appName, startupExePath))
+    {
+        if (!SetStartupRegistry(appName, exePath))
+        {
+            return 1;
+        }
+    }
+    else if (startupExePath != exePath)
+    {
+        if (!SetStartupRegistry(appName, exePath))
+        {
+            return 1;
+        }
+    }
 
     while (true)
     {
-        check_process();
+        bool processRunning = check_process(FL64) || check_process(FL32);
+
+        if (processRunning && !flRunning) {
+            flRunning = true;
+            update_presence();
+        }
+        else if (!processRunning && flRunning) {
+            flRunning = false;
+            clear_presence();
+        }
 
         Discord_RunCallbacks();
-        Sleep(1000);
+        Sleep(500);
     }
+
+    return 0;
 }
