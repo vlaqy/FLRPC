@@ -11,6 +11,6 @@ If you are experiencing other problems or have identified a bug, please create a
 
 [VirusTotal](https://www.virustotal.com/gui/file/1fb1f7c663fa983d5c15e8a1472f6f880585fe0b2f72848af1bdc1249b94a0a7?nocache=1)
 
-![IMG_1414](https://user-images.githubusercontent.com/65636577/235886708-f2252ed3-c86d-44a5-a7fa-f8a04c839371.jpeg)
+![IMG_1414](https://media.discordapp.net/attachments/840125805530972162/1119897488883720292/IMG_4431.png?width=621&height=234)
 
 **Tested on WIN10 and WIN11.**
