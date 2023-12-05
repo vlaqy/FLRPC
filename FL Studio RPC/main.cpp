@@ -10,7 +10,7 @@
 #include <tchar.h>
 #include <regex>
 
-const char* APPLICATION_ID = "788422800238575659"; // DO NOT REPLACE THIS
+const char* APPLICATION_ID = "788422800238575659"; // Do not change this.
 
 bool flRunning = false;
 
@@ -37,10 +37,16 @@ bool check_process(const std::wstring& process_name) {
     return false;
 }
 
+bool flfocused() {
+    return GetForegroundWindow() == FindWindow(L"TFruityLoopsMainForm", NULL);
+}
+
 void update_presence()
 {
     auto current_time = std::chrono::system_clock::now();
     auto start_time = std::chrono::system_clock::to_time_t(current_time);
+
+    std::wstring previous_project_title;
 
     while (true)
     {
@@ -51,23 +57,32 @@ void update_presence()
             GetWindowTextW(hwnd, windowTitle, sizeof(windowTitle));
             std::wstring title(windowTitle);
 
-            size_t index = title.find(L" - FL Studio 20");
-            if (index != std::wstring::npos)
-            {
-                title = title.substr(0, index);
-            }
+            std::wregex flStudioVersionRegex(L" - FL Studio (20|21)");
+            title = std::regex_replace(title, flStudioVersionRegex, L"");
 
             int size = WideCharToMultiByte(CP_UTF8, 0, title.c_str(), -1, NULL, 0, NULL, NULL);
             char* details = new char[size];
             WideCharToMultiByte(CP_UTF8, 0, title.c_str(), -1, details, size, NULL, NULL);
+
+            // Check if the project (flp) changed if so the time resets.
+            if (title != previous_project_title) {
+                start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+                previous_project_title = title;
+            }
 
             DiscordRichPresence presence;
             memset(&presence, 0, sizeof(presence));
             presence.details = details;
             presence.largeImageKey = "fl_logo";
             presence.largeImageText = "FL Studio";
+            presence.smallImageKey = flfocused() ? nullptr : "idle";
+            presence.smallImageText = "Idle";
             presence.instance = 1;
-            presence.startTimestamp = start_time;
+
+            if (flfocused()) {
+                presence.startTimestamp = start_time;
+            }
+
             Discord_UpdatePresence(&presence);
         }
         else
@@ -75,15 +90,13 @@ void update_presence()
             check_process(L"FL64.exe");
             check_process(L"FL32.exe");
             Discord_ClearPresence();
+
+            start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+            previous_project_title.clear();
         }
 
         Sleep(500);
     }
-}
-
-void clear_presence()
-{
-    Discord_ClearPresence();
 }
 
 bool SetStartupRegistry(const std::wstring& appName, const std::wstring& exePath)
@@ -169,6 +182,8 @@ int main()
         }
     }
 
+    std::time_t start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
     while (true)
     {
         bool processRunning = check_process(FL64) || check_process(FL32);
@@ -179,7 +194,8 @@ int main()
         }
         else if (!processRunning && flRunning) {
             flRunning = false;
-            clear_presence();
+            Discord_ClearPresence();
+            start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
         }
 
         Discord_RunCallbacks();
