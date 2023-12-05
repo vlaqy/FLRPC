@@ -10,6 +10,7 @@ It will also display time elapsed on a projects rendering time.
 
 ![Active](https://media.discordapp.net/attachments/840125805530972162/1181718701012164688/image.png?ex=6582144d&is=656f9f4d&hm=7e28802620fe68c42d7b6370fd447a68d2380cbc35a2da8606cfe83f8d3cb2b0&=&format=webp&quality=lossless&width=258&height=373)
 
+
 ![Idle](https://cdn.discordapp.com/attachments/840125805530972162/1181718701012164688/image.png?ex=6582144d&is=656f9f4d&hm=7e28802620fe68c42d7b6370fd447a68d2380cbc35a2da8606cfe83f8d3cb2b0&)
 
 
