@@ -8,10 +8,11 @@ It will also display time elapsed on a projects rendering time.
 * Recognition of idle state in FL Studio.
 * Runs on startup.
 
-# How to use:
-* Download the latest exe and just run it!
+ ![Active](https://cdn.discordapp.com/attachments/840125805530972162/1253863370101362839/image0.jpg?ex=667766c3&is=66761543&hm=6155242c63d798f0af188432cde3faa61f1c375ca5be2c91dcf3a19bf33cc6e2&) 
 
-![Active](https://cdn.discordapp.com/attachments/840125805530972162/1253863370101362839/image0.jpg?ex=667766c3&is=66761543&hm=6155242c63d798f0af188432cde3faa61f1c375ca5be2c91dcf3a19bf33cc6e2&) 
+# How to use:
+* Download the latest exe from the 'releases' tab and just run it!
+
 
 If you are encountering any issues, try downloading the latest version of Microsoft Visual C++ Redistributable found below
 
